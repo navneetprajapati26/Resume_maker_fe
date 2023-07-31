@@ -1,49 +1,78 @@
-/*
- * Copyright (C) 2017, David PHAM-VAN <dev.nfet.net@gmail.com>
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:resume_maker/screens/auth/auth_provider.dart';
+import 'package:resume_maker/screens/auth/screens/login_user.dart';
+import 'package:resume_maker/screens/auth/screens/register_user.dart';
+import 'package:resume_maker/screens/auth/screens/user_info.dart';
+import 'package:resume_maker/screens/bottom_bar/bottem_bar_provider.dart';
+import 'package:resume_maker/screens/bottom_bar/bottem_bar_screen.dart';
 import 'package:resume_maker/screens/home/home_screen.dart';
-
-import 'github_exmpule/app.dart';
-
+import 'package:resume_maker/screens/make_resume/make_resume_provider.dart';
 
 void main() {
   runApp(const App());
 }
 
-class App extends StatelessWidget {
+class App extends StatefulWidget {
   const App({Key? key}) : super(key: key);
 
+  @override
+  State<App> createState() => _AppState();
+}
+
+class _AppState extends State<App> {
+  @override
   @override
   Widget build(BuildContext context) {
     final scrollbarTheme = ScrollbarThemeData(
       thumbVisibility: MaterialStateProperty.all(true),
     );
-
-    return ChangeNotifierProvider(
-      // create: (_) => PdfProvider(),
-      create: (BuildContext context) {  },
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_)=>BottomBarProvider()),
+        ChangeNotifierProvider(create: (_)=>MakeResumeProvider())
+      ],
       child: MaterialApp(
-        theme: ThemeData.light().copyWith(scrollbarTheme: scrollbarTheme),
-        darkTheme: ThemeData.dark().copyWith(scrollbarTheme: scrollbarTheme),
-        debugShowCheckedModeBanner: false,
-        title: 'Flutter PDF Demo',
-        home: HomeScreen(),
-      ),
+          theme: ThemeData.light().copyWith(scrollbarTheme: scrollbarTheme),
+          darkTheme: ThemeData.dark().copyWith(scrollbarTheme: scrollbarTheme),
+          debugShowCheckedModeBanner: false,
+          title: 'Flutter PDF Demo',
+          //home:RegistrationScreen(),
+          home: AuthenticationWrapper()),
     );
+  }
+}
+
+class AuthenticationWrapper extends StatefulWidget {
+  const AuthenticationWrapper({Key? key}) : super(key: key);
+
+  @override
+  State<AuthenticationWrapper> createState() => _AuthenticationWrapperState();
+}
+
+class _AuthenticationWrapperState extends State<AuthenticationWrapper> {
+  void initState() {
+    loadMyString();
+    // TODO: implement initState
+    super.initState();
+  }
+
+  Future<void> loadMyString() async {
+    final carouserlController =
+        Provider.of<AuthProvider>(context, listen: false);
+    carouserlController.loadMyString();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<AuthProvider>(builder: (context, authProvider, child) {
+      // ignore: unnecessary_null_comparison
+      return authProvider.myString! != null
+          ? authProvider.myString! == "NoLogin"
+              ? LoginScreen()
+              : BottomBar()
+          : Center(child: CircularProgressIndicator());
+    });
   }
 }
